@@ -65,20 +65,43 @@ void init (const char * modelFilename) {
 void drawScene () {
 
 	//Vec3d lumi = Vec3d(0,0,1);
-
+    Vec3d light_source = Vec3d(50, 50, -10);
 	glBegin (GL_TRIANGLES);
 	for (unsigned int i = 0; i < mesh.T.size (); i++)
-	for (unsigned int j = 0; j < 3; j++) {
+    {
+        for (unsigned int j = 0; j < 3; j++) {
 		const Vertex & v = mesh.V[mesh.T[i].v[j]];
 		// EXERCISE : the following color response shall be replaced with a proper reflectance evaluation/shadow test/etc.
 		//	glColor3f (1.0, 1.0, 1.0);
 		//L(w0) = li(wi)*alpha*	(normal * direction de lumiaire)
+		glNormal3f (v.n[0], v.n[1], v.n[2]); // Specifies current normal vertex
 		double L;
 		Vec3d pos = Vec3d(v.p[0], v.p[1], v.p[2]);
-		Vec3d w_i = normalize(Vec3d(50, 50, -10	) - pos);
-
-		glNormal3f (v.n[0], v.n[1], v.n[2]); // Specifies current normal vertex
+		float c_x,c_y,c_z;
+		camera.getPos(c_x,c_y,c_z);
+		Vec3d cam_pos = Vec3d(c_x,c_y,c_z);
 		Vec3d normal = Vec3d(v.n[0], v.n[1], v.n[2]);
+		Vec3d w_i = normalize(light_source - pos);
+		Vec3d w_o = normalize(cam_pos - pos);
+		Vec3d w_h = normalize(w_o + w_i);
+        bool is_intersected = false;
+        for(unsigned int k = 0;k<mesh.T.size();k++){
+            if(k == i) continue;//dont do the same triangle!
+		    const Vertex & v0 = mesh.V[mesh.T[i].v[0]];
+		    const Vertex & v1 = mesh.V[mesh.T[i].v[1]];
+    		const Vertex & v2 = mesh.V[mesh.T[i].v[2]];
+            Vec3d vp0 = Vec3d(v0.p[0],v0.p[1],v0.p[2]);
+            Vec3d vp1 = Vec3d(v1.p[0],v1.p[1],v1.p[2]);
+            Vec3d vp2 = Vec3d(v2.p[0],v2.p[1],v2.p[2]);
+
+            is_intersected =(new Ray(light_source, pos - light_source))->is_intersect_with(vp0,vp1,vp2);
+            if(is_intersected == true)
+                break;
+        
+        }
+        if(is_intersected == true) L = 0;
+        else {
+            /*
 		double lambert = 0.5;
 		//double L = 0.2*lambert * (dot(normal,lumi));
 		float c_x,c_y,c_z;
@@ -86,12 +109,11 @@ void drawScene () {
 		Vec3d cam_pos = Vec3d(c_x,c_y,c_z);
 		double ks = 1;
 		double s = 10;
-		Vec3d w_o = normalize(cam_pos - pos);
-		Vec3d w_h = normalize(w_o + w_i);
 		double phong = ks * pow(max(0.0,dot(normal, w_h)),s);
 		//double L = 1 * (lambert + phong)*max(0.0,dot(normal,w_i));
-
-		//Distribution GGX
+        */
+		
+        //Distribution GGX
 		double alpha = 0.1;
 		double D = pow(alpha,2)/(M_PI*pow(1 + (pow(alpha,2)-1)*pow(dot(normal,w_h),2.0) ,2));
 
@@ -106,9 +128,11 @@ void drawScene () {
 		double fs_mf = D*F*G/(4*dot(normal,w_i)*dot(normal,w_o));
 
 		L = 100*fs_mf*max(0.0,dot(normal,w_i));
+        }
 		glColor3f (L, L, L);
 		glVertex3f (v.p[0], v.p[1], v.p[2]); // Emit a vertex (one triangle is emitted each time 3 vertices are emitted)
-	}
+	    }
+    }
 	glEnd ();
 }
 double geometrique_ggx(double alpha,Vec3d normal,Vec3d w){

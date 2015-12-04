@@ -5,6 +5,12 @@ class Ray {
 public:
   Vec3d origin;
   Vec3d direction;
+  Ray(Vec3d o,Vec3d direct){
+    origin = o;
+    direction =normalize(direct);
+
+  }
+
   bool is_intersect_with(Vec3d p0, Vec3d p1, Vec3d p2)
   {
     Vec3d o = origin;
