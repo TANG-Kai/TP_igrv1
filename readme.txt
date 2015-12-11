@@ -1,4 +1,4 @@
-Informatique Graphique 3D et Réalité Virtuelle 
+Informatique Graphique 3D et Rï¿½alitï¿½ Virtuelle
 
 Travaux Pratique
 

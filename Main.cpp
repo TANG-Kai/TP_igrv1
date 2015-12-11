@@ -18,7 +18,8 @@
 #include "Vec3.h"
 #include "Camera.h"
 #include "Mesh.h"
-#include "Ray.h"
+//#include "Ray.h"
+#include "copie de Ray.h"
 
 using namespace std;
 
@@ -62,43 +63,56 @@ void init (const char * modelFilename) {
 
 	mesh.loadOFF (modelFilename);
 	camera.resize (DEFAULT_SCREENWIDTH, DEFAULT_SCREENHEIGHT);
-	light_source = Vec3d(50, 50, -10);
-	is_eclaired = new bool[mesh.T.size()];
-	for (unsigned int i = 0; i < mesh.T.size (); i++)
+
+	light_source = Vec3d(10, 10, 10);
+	is_eclaired = new bool[mesh.V.size()];
+
+	std::cout << "mesh vertex size = " << mesh.V.size() << std::endl;
+
+	int is_shadow = 0;
+	for (unsigned int i = 0; i < mesh.V.size (); i++)
 	{
 		is_eclaired[i] = true;
-		for (unsigned int j = 0; j < 3; j++) {
-			const Vertex & v = mesh.V[mesh.T[i].v[j]];
-			Vec3d pos = Vec3d(v.p[0], v.p[1], v.p[2]);
-			for(unsigned int k = 0;k<mesh.T.size();k++){
-				if(k == i) continue;//dont do the same triangle!
-				const Vertex & v0 = mesh.V[mesh.T[i].v[0]];
-				const Vertex & v1 = mesh.V[mesh.T[i].v[1]];
-				const Vertex & v2 = mesh.V[mesh.T[i].v[2]];
-				Vec3d vp0 = Vec3d(v0.p[0],v0.p[1],v0.p[2]);
-				Vec3d vp1 = Vec3d(v1.p[0],v1.p[1],v1.p[2]);
-				Vec3d vp2 = Vec3d(v2.p[0],v2.p[1],v2.p[2]);
-				is_eclaired[i] =!(new Ray(light_source, pos - light_source))->is_intersect_with(vp0,vp1,vp2);
-				if(is_eclaired[i] == false)
-					break;
+		const Vertex & v = mesh.V[i];
+		Vec3d pos = Vec3d(v.p);
+		// std::cout << "mesh triangle size = " << mesh.T.size() << std::endl;
+		Ray ray(pos, light_source - pos);
+		//std::cout << "ray.origin = " << ray.origin[0] << " ; " << ray.origin[1] << " ; " << ray.origin[2] << std::endl;
+		//	std::cout << "ray.direction = " << ray.direction[0] << " ; " << ray.direction[1] << " ; " << ray.direction[2] << std::endl;
+
+		for(unsigned int k = 0;k<mesh.T.size();k++){
+			// if(k == i) continue;//dont do the same triangle!
+			const Vertex & v0 = mesh.V[mesh.T[k].v[0]];
+			const Vertex & v1 = mesh.V[mesh.T[k].v[1]];
+			const Vertex & v2 = mesh.V[mesh.T[k].v[2]];
+			Vec3d vp0 = Vec3d(v0.p);
+			Vec3d vp1 = Vec3d(v1.p);
+			Vec3d vp2 = Vec3d(v2.p);
+			if(ray.is_intersect_with(vp0,vp1,vp2))
+			{
+				is_eclaired[i] = false;
+				//std::cout << "goes here!"  << std::endl;
+				is_shadow++;
+				break;
 			}
 		}
 	}
+	std::cerr << std::endl << is_shadow/**1.0/mesh.V.size()*/<< std::endl ;
 }
 
 void drawScene () {
-
 	glBegin (GL_TRIANGLES);
 	for (unsigned int i = 0; i < mesh.T.size (); i++)
 	{
 		for (unsigned int j = 0; j < 3; j++) {
 			const Vertex & v = mesh.V[mesh.T[i].v[j]];
+			int number = mesh.T[i].v[j];
 			// EXERCISE : the following color response shall be replaced with a proper reflectance evaluation/shadow test/etc.
 			//	glColor3f (1.0, 1.0, 1.0);
 			//L(w0) = li(wi)*alpha*	(normal * direction de lumiaire)
 			glNormal3f (v.n[0], v.n[1], v.n[2]); // Specifies current normal vertex
 			double L;
-			Vec3d pos = Vec3d(v.p[0], v.p[1], v.p[2]);
+			Vec3d pos = Vec3d(v.p);
 			float c_x,c_y,c_z;
 			camera.getPos(c_x,c_y,c_z);
 			Vec3d cam_pos = Vec3d(c_x,c_y,c_z);
@@ -106,7 +120,10 @@ void drawScene () {
 			Vec3d w_i = normalize(light_source - pos);
 			Vec3d w_o = normalize(cam_pos - pos);
 			Vec3d w_h = normalize(w_o + w_i);
-			if(is_eclaired[i] == false) L = 0;
+			if(is_eclaired[number] == false)
+			{
+				L = 0;
+			}
 			else {
 				/*
 				double lambert = 0.5;
@@ -121,7 +138,7 @@ void drawScene () {
 				*/
 
 				//Distribution GGX
-				double alpha = 0.1;
+				double alpha = 0.8;
 				double D = pow(alpha,2)/(M_PI*pow(1 + (pow(alpha,2)-1)*pow(dot(normal,w_h),2.0) ,2));
 
 				//Fresnel
@@ -172,6 +189,7 @@ void key (unsigned char keyPressed, int x, int y) {
 		break;
 		case 'q':
 		case 27:
+		delete is_eclaired;
 		exit (0);
 		break;
 		case 'w':

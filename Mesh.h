@@ -1,19 +1,19 @@
 // --------------------------------------------------------------------------
 // Copyright(C) 2009-2015
 // Tamy Boubekeur
-//                                                                            
-// All rights reserved.                                                       
-//                                                                            
-// This program is free software; you can redistribute it and/or modify       
-// it under the terms of the GNU General Public License as published by       
-// the Free Software Foundation; either version 2 of the License, or          
-// (at your option) any later version.                                        
-//                                                                            
-// This program is distributed in the hope that it will be useful,            
-// but WITHOUT ANY WARRANTY; without even the implied warranty of             
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              
-// GNU General Public License (http://www.gnu.org/licenses/gpl.txt)           
-// for more details.                                                          
+//
+// All rights reserved.
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License (http://www.gnu.org/licenses/gpl.txt)
+// for more details.
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -25,10 +25,10 @@
 class Vertex {
 public:
     inline Vertex () {}
-    inline Vertex (const Vec3f & p, const Vec3f & n) : p (p), n (n) {}
+    inline Vertex (const Vec3d & p, const Vec3d & n) : p (p), n (n) {}
     inline virtual ~Vertex () {}
-    Vec3f p;
-    Vec3f n;
+    Vec3d p;
+    Vec3d n;
 };
 
 /// A Triangle class expressed as a triplet of indices (over an external vertex list)
@@ -65,7 +65,7 @@ public:
 
     /// Loads the mesh from a <file>.off
 	void loadOFF (const std::string & filename);
-    
+
     /// Compute smooth per-vertex normals
     void recomputeNormals ();
 

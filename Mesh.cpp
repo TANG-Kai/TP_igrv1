@@ -1,19 +1,19 @@
 // --------------------------------------------------------------------------
 // Copyright(C) 2009-2015
 // Tamy Boubekeur
-//                                                                            
-// All rights reserved.                                                       
-//                                                                            
-// This program is free software; you can redistribute it and/or modify       
-// it under the terms of the GNU General Public License as published by       
-// the Free Software Foundation; either version 2 of the License, or          
-// (at your option) any later version.                                        
-//                                                                            
-// This program is distributed in the hope that it will be useful,            
-// but WITHOUT ANY WARRANTY; without even the implied warranty of             
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              
-// GNU General Public License (http://www.gnu.org/licenses/gpl.txt)           
-// for more details.                                                          
+//
+// All rights reserved.
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License (http://www.gnu.org/licenses/gpl.txt)
+// for more details.
 // --------------------------------------------------------------------------
 
 #include "Mesh.h"
@@ -26,7 +26,7 @@ using namespace std;
 
 void Mesh::loadOFF (const std::string & filename) {
 	ifstream in (filename.c_str ());
-    if (!in) 
+    if (!in)
         exit (1);
 	string offString;
     unsigned int sizeV, sizeT, tmp;
@@ -48,11 +48,11 @@ void Mesh::loadOFF (const std::string & filename) {
 
 void Mesh::recomputeNormals () {
     for (unsigned int i = 0; i < V.size (); i++)
-        V[i].n = Vec3f (0.0, 0.0, 0.0);
+        V[i].n = Vec3d (0.0, 0.0, 0.0);
     for (unsigned int i = 0; i < T.size (); i++) {
-        Vec3f e01 = V[T[i].v[1]].p -  V[T[i].v[0]].p;
-        Vec3f e02 = V[T[i].v[2]].p -  V[T[i].v[0]].p;
-        Vec3f n = cross (e01, e02);
+        Vec3d e01 = V[T[i].v[1]].p -  V[T[i].v[0]].p;
+        Vec3d e02 = V[T[i].v[2]].p -  V[T[i].v[0]].p;
+        Vec3d n = cross (e01, e02);
         n.normalize ();
         for (unsigned int j = 0; j < 3; j++)
             V[T[i].v[j]].n += n;
@@ -62,7 +62,7 @@ void Mesh::recomputeNormals () {
 }
 
 void Mesh::centerAndScaleToUnit () {
-    Vec3f c;
+    Vec3d c;
     for  (unsigned int i = 0; i < V.size (); i++)
         c += V[i].p;
     c /= V.size ();
