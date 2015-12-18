@@ -19,7 +19,7 @@
 #include "Camera.h"
 #include "Mesh.h"
 //#include "Ray.h"
-#include "copie de Ray.h"
+#include "Ray.h"
 
 using namespace std;
 
@@ -35,8 +35,12 @@ static bool fullScreen = false;
 static Camera camera;
 static Mesh mesh;
 static bool* is_eclaired;
+static int* shadow_num;
 static Vec3d light_source;
 double geometrique_ggx(double alpha,Vec3d normal,Vec3d w);
+double Randd(){
+	return rand()%1001*0.001;
+}
 void printUsage () {
 	std::cerr << std::endl
 	<< appTitle << std::endl
@@ -66,38 +70,50 @@ void init (const char * modelFilename) {
 
 	light_source = Vec3d(10, 10, 10);
 	is_eclaired = new bool[mesh.V.size()];
-
+	shadow_num = new int[mesh.V.size()];
 	std::cout << "mesh vertex size = " << mesh.V.size() << std::endl;
 
-	int is_shadow = 0;
 	for (unsigned int i = 0; i < mesh.V.size (); i++)
 	{
 		is_eclaired[i] = true;
+		shadow_num[i]=0;
 		const Vertex & v = mesh.V[i];
 		Vec3d pos = Vec3d(v.p);
 		// std::cout << "mesh triangle size = " << mesh.T.size() << std::endl;
-		Ray ray(pos, light_source - pos);
-		//std::cout << "ray.origin = " << ray.origin[0] << " ; " << ray.origin[1] << " ; " << ray.origin[2] << std::endl;
-		//	std::cout << "ray.direction = " << ray.direction[0] << " ; " << ray.direction[1] << " ; " << ray.direction[2] << std::endl;
+		int num_of_rays = 100;
+		double max_angle = 30;
+		Vec3d normal = v.n;
+		for(int j= 0; j<num_of_rays;j++){
+			double randnum1 = Randd()*M_PI/2;//0~2pi
+			double randnum2 = Randd()*M_PI/2;
 
-		for(unsigned int k = 0;k<mesh.T.size();k++){
-			// if(k == i) continue;//dont do the same triangle!
-			const Vertex & v0 = mesh.V[mesh.T[k].v[0]];
-			const Vertex & v1 = mesh.V[mesh.T[k].v[1]];
-			const Vertex & v2 = mesh.V[mesh.T[k].v[2]];
-			Vec3d vp0 = Vec3d(v0.p);
-			Vec3d vp1 = Vec3d(v1.p);
-			Vec3d vp2 = Vec3d(v2.p);
-			if(ray.is_intersect_with(vp0,vp1,vp2))
-			{
-				is_eclaired[i] = false;
-				//std::cout << "goes here!"  << std::endl;
-				is_shadow++;
-				break;
+
+			Vec3d dir = normal;
+			Vec3d randangle = Vec3d(1,randnum1,randnum2);
+			randangle = polarToCartesian(randangle);
+
+
+			Ray ray(pos, dir);
+			//std::cout << "ray.origin = " << ray.origin[0] << " ; " << ray.origin[1] << " ; " << ray.origin[2] << std::endl;
+			//	std::cout << "ray.direction = " << ray.direction[0] << " ; " << ray.direction[1] << " ; " << ray.direction[2] << std::endl;
+
+			for(unsigned int k = 0;k<mesh.T.size();k++){
+				// if(k == i) continue;//dont do the same triangle!
+				const Vertex & v0 = mesh.V[mesh.T[k].v[0]];
+				const Vertex & v1 = mesh.V[mesh.T[k].v[1]];
+				const Vertex & v2 = mesh.V[mesh.T[k].v[2]];
+				Vec3d vp0 = Vec3d(v0.p);
+				Vec3d vp1 = Vec3d(v1.p);
+				Vec3d vp2 = Vec3d(v2.p);
+				if(ray.is_intersect_with(vp0,vp1,vp2))
+				{
+					is_eclaired[i] = false;
+					shadow_num[i]++;
+					break;
+				}
 			}
 		}
 	}
-	std::cerr << std::endl << is_shadow/**1.0/mesh.V.size()*/<< std::endl ;
 }
 
 void drawScene () {
